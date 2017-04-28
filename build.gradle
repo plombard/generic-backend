@@ -34,7 +34,7 @@ task payara {
 
     doLast {
         javaexec {
-            main = "-jar";
+            main = "-jar"
             args = [
                     "$home\\$jarname",
                     "--deploy",
