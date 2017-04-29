@@ -20,7 +20,7 @@ dependencies {
     providedCompile group: 'javax', name: 'javaee-api', version: '7.0'
 }
 
-task payara {
+task payara(dependsOn : 'war') {
 
     def home = project.property("payara.home")
     def jarname = project.property("payara.jarname")
