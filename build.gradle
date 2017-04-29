@@ -33,9 +33,15 @@ task payara {
 
     doLast {
         javaexec {
+            if (project.hasProperty("payara.debugport")) {
+                jvmArgs = ["-Xdebug", "-Xnoagent",
+                           "-Xrunjdwp:transport=dt_socket,server=y,suspend=n," +
+                                   "address=" + project.property("payara.debugport")]
+            }
             main = "-jar"
             args = [
                     "$home\\$jarname",
+                    "--noCluster",
                     "--deploy",
                     "$home\\$war.baseName" + "." + war.extension
             ]
