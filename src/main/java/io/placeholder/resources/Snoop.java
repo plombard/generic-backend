@@ -1,8 +1,10 @@
 package io.placeholder.resources;
 
+import javax.servlet.ServletContext;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.Produces;
+import javax.ws.rs.core.Context;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import java.lang.management.ManagementFactory;
@@ -21,7 +23,7 @@ public class Snoop {
 
   @GET
   @Produces(MediaType.APPLICATION_JSON)
-  public Response snoop() {
+  public Response snoop(@Context ServletContext servletContext) {
 
     Map<String, Object> map = new HashMap<>();
     RuntimeMXBean runtimeBean = ManagementFactory.getRuntimeMXBean();
@@ -48,6 +50,7 @@ public class Snoop {
     map.put("os.arch", osBean.getArch());
     map.put("os.procs", osBean.getAvailableProcessors());
     map.put("os.load", osBean.getSystemLoadAverage());
+    map.put("server.info", servletContext.getServerInfo());
 
     return Response.ok(map).type(MediaType.APPLICATION_JSON).build();
   }
