@@ -1,83 +1,50 @@
-apply plugin: 'java'
-apply plugin: 'war'
+group "io.placeholder"
+version "1.0-SNAPSHOT"
 
-war.version = "1.0"
-war.classifier = "SNAPSHOT"
+buildscript {
+    ext.swarm_version = "2017.7.0"
 
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath "io.spring.gradle:dependency-management-plugin:1.0.3.RELEASE"
+        classpath "org.wildfly.swarm:wildfly-swarm-gradle-plugin:$swarm_version"
+    }
+}
+
+apply plugin: "io.spring.dependency-management"
+apply plugin: "wildfly-swarm"
+apply plugin: "java"
+apply plugin: "war"
 
 tasks.withType(JavaCompile) {
     options.encoding = 'UTF-8'
 }
-
 sourceCompatibility = 1.8
-targetCompatibility = 1.8
+
+swarm {
+    properties {
+        swarm.context.path = "/backend"
+    }
+}
 
 repositories {
     mavenCentral()
+    jcenter()
+    maven {
+        url 'https://maven.repository.redhat.com/nexus/content/repositories/thirdparty-releases/'
+    }
+}
+
+dependencyManagement {
+    imports {
+        mavenBom "org.wildfly.swarm:bom-all:$swarm_version"
+    }
 }
 
 dependencies {
-    compile group: 'org.mongodb.morphia', name: 'morphia', version: '1.3.1'
-    providedCompile group: 'javax', name: 'javaee-api', version: '7.0'
-}
-
-task payara() {
-
-    outputs.upToDateWhen { false }
-    def home = project.property("payara.home")
-    def jarname = project.property("payara.jarname")
-
-    copy {
-        from(war.archivePath)
-        into(home)
-        rename war.archiveName, war.baseName + "." + war.extension
-    }
-
-    doLast {
-        javaexec {
-            if (project.hasProperty("payara.debugport")) {
-                jvmArgs = ["-Xdebug", "-Xnoagent",
-                           "-Xrunjdwp:transport=dt_socket,server=y,suspend=n," +
-                                   "address=" + project.property("payara.debugport")]
-            }
-            main = "-jar"
-            args = [
-                    "$home\\$jarname",
-                    "--noCluster",
-                    "--deploy",
-                    "$home\\$war.baseName" + "." + war.extension
-            ]
-        }
-    }
-}
-
-task swarm() {
-
-    outputs.upToDateWhen { false }
-    def home = project.property("swarm.home")
-    def jarname = project.property("swarm.jarname")
-    def context = project.property("swarm.context")
-
-    copy {
-        from(war.archivePath)
-        into(home)
-        rename war.archiveName, war.baseName + "." + war.extension
-    }
-
-    doLast {
-        javaexec {
-            if (project.hasProperty("swarm.debugport")) {
-                jvmArgs = ["-Xdebug", "-Xnoagent",
-                           "-Xrunjdwp:transport=dt_socket,server=y,suspend=n," +
-                                   "address=" + project.property("swarm" +
-                                   ".debugport")]
-            }
-            main = "-jar"
-            args = [
-                    "$home\\$jarname",
-                    "-Dswarm.context.path=" + context,
-                    "$home\\$war.baseName" + "." + war.extension
-            ]
-        }
-    }
+    compile "org.mongodb.morphia:morphia:1.3.1"
+    compile "org.wildfly.swarm:microprofile"
+    //providedCompile group: 'javax', name: 'javaee-api', version: '7.0'
 }
